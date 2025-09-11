@@ -113,98 +113,125 @@ class _ElementKeywords(KeywordGroup):
         driver = self._current_application()
         return driver.is_keyboard_shown()
 
-    def page_should_contain_text(self, text, loglevel='INFO'):
+    def page_should_contain_text(self, text, loglevel='INFO', message=''):
         """Verifies that the current page contains ``text``.
 
         Args:
          - ``text``: the text that the page should contain
          - ``loglevel`` (optional): if this keyword fails, it automatically logs the page source using the the given loglevel. Set this argument to `NONE` to disable logging.
+         - ``message``: if provided, it overrides the default error message shown upon failure.
         """
         if not self._is_text_present(text):
             self.log_source(loglevel)
-            raise AssertionError("Page should have contained text '%s' "
-                                 "but did not" % text)
+            if not message:
+                message = "Page was expected to contain text '%s' "\
+                                 "but did not" % text
+            raise AssertionError(message)
         self._info("Current page contains text '%s'." % text)
 
-    def page_should_not_contain_text(self, text, loglevel='INFO'):
+    def page_should_not_contain_text(self, text, loglevel='INFO', message=''):
         """Verifies that the current page does not contain ``text``.
 
         Args:
          - ``text``: the text that the page should not contain
          - ``loglevel`` (optional): if this keyword fails, it automatically logs the page source using the the given loglevel. Set this argument to `NONE` to disable logging.
+         - ``message``: if provided, it overrides the default error message shown upon failure.
         """
         if self._is_text_present(text):
             self.log_source(loglevel)
-            raise AssertionError("Page should not have contained text '%s'" % text)
+            if not message:
+                message = "Page should not have contained text '%s' "\
+                                 "but it did" % text
+            raise AssertionError(message)
         self._info("Current page does not contains text '%s'." % text)
 
-    def page_should_contain_element(self, locator, loglevel='INFO'):
+    def page_should_contain_element(self, locator, loglevel='INFO', message=''):
         """Verifies that the current page contains the element with the ``locator``.
 
        Args:
          - ``locator``: locator of the element that the page should contain
          - ``loglevel`` (optional): if this keyword fails, it automatically logs the page source using the the given loglevel. Set this argument to `NONE` to disable logging.
+         - ``message``: if provided, it overrides the default error message shown upon failure.
         """
         if not self._is_element_present(locator):
             self.log_source(loglevel)
-            raise AssertionError("Page should have contained element '%s' "
-                                 "but did not" % locator)
+            if not message:
+                message="Page was expected to contain element '%s' "\
+                                 "but did not" % locator
+            raise AssertionError(message)
         self._info("Current page contains element '%s'." % locator)
 
-    def page_should_not_contain_element(self, locator, loglevel='INFO'):
+    def page_should_not_contain_element(self, locator, loglevel='INFO', message=''):
         """Verifies that the current page does not contain the element with the ``locator``.
 
         Args:
          - ``locator``: locator of the element that the page should not contain
          - ``loglevel`` (optional): if this keyword fails, it automatically logs the page source using the the given loglevel. Set this argument to `NONE` to disable logging.
+         - ``message``: if provided, it overrides the default error message shown upon failure.
         """
         if self._is_element_present(locator):
             self.log_source(loglevel)
-            raise AssertionError("Page should not have contained element '%s'" % locator)
+            if not message:
+                message = "Page should not have contained element '%s' "\
+                                 "but it did" % locator
+            raise AssertionError(message)
         self._info("Current page does not contain element '%s'." % locator)
 
-    def element_should_be_disabled(self, locator, loglevel='INFO'):
+    def element_should_be_disabled(self, locator, loglevel='INFO', message=''):
         """Verifies that element identified by ``locator`` is disabled.
 
         Args:
          - ``locator``: locator of the element that should be disabled
          - ``loglevel`` (optional): if this keyword fails, it automatically logs the page source using the the given loglevel. Set this argument to `NONE` to disable logging.
+         - ``message``: if provided, it overrides the default error message shown upon failure.
 
         Key attributes for arbitrary elements are `id` and `name`. See
         `introduction` for details about locating elements.
         """
         if self._element_find(locator, True, True).is_enabled():
             self.log_source(loglevel)
-            raise AssertionError("Element '%s' should be disabled "
-                                 "but did not" % locator)
+            if not message:
+                message="Element '%s' should be disabled "\
+                                 "but was not" % locator
+            raise AssertionError(message)
         self._info("Element '%s' is disabled ." % locator)
 
-    def element_should_be_enabled(self, locator, loglevel='INFO'):
+    def element_should_be_enabled(self, locator, loglevel='INFO', message=''):
         """Verifies that the element identified by ``locator`` is enabled.
 
         Args:
          - ``locator``: locator of the element that should be enabled
          - ``loglevel`` (optional): if this keyword fails, it automatically logs the page source using the the given loglevel. Set this argument to `NONE` to disable logging.
+         - ``message``: if provided, it overrides the default error message shown upon failure.
 
         Key attributes for arbitrary elements are `id` and `name`. See
         `introduction` for details about locating elements.
         """
         if not self._element_find(locator, True, True).is_enabled():
             self.log_source(loglevel)
-            raise AssertionError("Element '%s' should be enabled "
-                                 "but did not" % locator)
+            if not message:
+                message="Element '%s' should be enabled "\
+                                 "but was not" % locator
+            raise AssertionError(message)
         self._info("Element '%s' is enabled ." % locator)
 
-    def element_should_be_visible(self, locator, loglevel='INFO'):
+    def element_should_be_visible(self, locator, loglevel='INFO', message=''):
         """Verifies that the element identified by ``locator`` is visible.
+
+        Args:
+         - ``locator``: locator of the element that should be visible
+         - ``loglevel`` (optional): if this keyword fails, it automatically logs the page source using the the given loglevel. Set this argument to `NONE` to disable logging.
+         - ``message``: if provided, it overrides the default error message shown upon failure.
 
         Key attributes for arbitrary elements are `id` and `name`. See
         `introduction` for details about locating elements.
         """
         if not self._element_find(locator, True, True).is_displayed():
             self.log_source(loglevel)
-            raise AssertionError("Element '%s' should be visible "
-                                 "but did not" % locator)
+            if not message:
+                message="Element '%s' should be visible "\
+                                 "but was not" % locator
+            raise AssertionError(message)
 
     def element_attribute_should_match(self, locator, attr_name, match_pattern, regexp=False):
         """Verifies that an attribute of an element matches the expected criteria.
@@ -483,17 +510,21 @@ class _ElementKeywords(KeywordGroup):
         count = len(self._element_find("xpath=" + xpath, False, False))
         return str(count)
 
-    def text_should_be_visible(self, text, exact_match=False, loglevel='INFO'):
+    def text_should_be_visible(self, text, exact_match=False, loglevel='INFO', message=''):
         """Verifies that the element identified by ``text`` is visible.
 
         Args:
          - ``text``: the text that should be visible
          - ``exact_match`` (optional): if the exact match should be found, set this argument to `True`.
+         - ``loglevel`` (optional): if this keyword fails, it automatically logs the page source using the the given loglevel. Set this argument to `NONE` to disable logging.
+         - ``message``: if provided, it overrides the default error message shown upon failure.
         """
         if not self._element_find_by_text(text, exact_match).is_displayed():
             self.log_source(loglevel)
-            raise AssertionError("Text '%s' should be visible "
-                                 "but did not" % text)
+            if not message:
+                message = "Text '%s' was expected to be visible "\
+                                 "but was not" % text
+            raise AssertionError(message)
 
     def xpath_should_match_x_times(self, xpath, count, error=None, loglevel='INFO'):
         """Verifies that the page contains the given number of elements (``count``) located by ``xpath``.
