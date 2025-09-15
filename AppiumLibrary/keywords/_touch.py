@@ -7,6 +7,8 @@ from appium.webdriver.extensions.action_helpers import ActionHelpers
 from datetime import timedelta
 from AppiumLibrary.locators import ElementFinder
 from .keywordgroup import KeywordGroup
+from selenium.webdriver import ActionChains
+from selenium.webdriver.common.actions.mouse_button import MouseButton
 
 from robot.api import logger
 from typing import Union
@@ -18,6 +20,60 @@ class _TouchKeywords(KeywordGroup):
         self._element_finder = ElementFinder()
 
     # Public, element lookups
+    def zoom(self, zoom_type:str ='in', distance_ratio:float=0.25):
+        """
+        Zooms in or out using a defined distance ratio.
+
+        Args:
+         - ``zoom_type``: specifies the type of zoom action. Possible values are 'in' or 'out' (default: in). 
+         - ``distance_ratio``: defines the relative distance between the two fingers during the zoom gesture, expressed as a ratio of the screen's width.
+         Recommended values for the distance are:
+          - 0.1 for a small zoom
+          - 0.25 for a moderate zoom (typical for most use cases)
+          - 0.5 for a larger zoom
+        """
+        driver = self._current_application()
+        window_size = driver.get_window_size()
+
+        center_x = window_size['width']/2
+        center_y = window_size['height']/2
+        distance = window_size['width'] * distance_ratio
+
+        actions = ActionChains(driver)
+        actions.w3c_actions.devices = []
+        
+        finger1 = actions.w3c_actions.add_pointer_input('touch', 'finger1')
+        finger2 = actions.w3c_actions.add_pointer_input('touch', 'finger2')
+        
+        if zoom_type == 'in':
+            finger1.create_pointer_move(x=center_x - distance / 2, y=center_y)
+            finger1.create_pointer_down(button=MouseButton.LEFT)
+            finger1.create_pause(0.5)
+            finger1.create_pointer_move(x=center_x - distance, y=center_y)
+            finger1.create_pointer_up(button=MouseButton.LEFT)
+
+            finger2.create_pointer_move(x=center_x + distance / 2, y=center_y)
+            finger2.create_pointer_down(button=MouseButton.LEFT)
+            finger2.create_pause(0.5)
+            finger2.create_pointer_move(x=center_x + distance, y=center_y)
+            finger2.create_pointer_up(button=MouseButton.LEFT)
+
+        elif zoom_type == 'out':
+            finger1.create_pointer_move(x=center_x - distance, y=center_y)
+            finger1.create_pointer_down(button=MouseButton.LEFT)
+            finger1.create_pause(0.5)
+            finger1.create_pointer_move(x=center_x - distance / 2, y=center_y)
+            finger1.create_pointer_up(button=MouseButton.LEFT)
+
+            finger2.create_pointer_move(x=center_x + distance, y=center_y)
+            finger2.create_pointer_down(button=MouseButton.LEFT)
+            finger2.create_pause(0.5)
+            finger2.create_pointer_move(x=center_x + distance / 2, y=center_y)
+            finger2.create_pointer_up(button=MouseButton.LEFT)
+        else:
+            raise ValueError("zoom_type must be either 'in' or 'out'")
+        
+        actions.perform()
 
     def swipe(self, *, start_x: Union[int, float], start_y: Union[int, float], end_x: Union[int, float], end_y: Union[int, float], duration: Union[int, timedelta] = timedelta(seconds=1)):
         """
