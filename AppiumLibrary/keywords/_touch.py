@@ -127,19 +127,36 @@ class _TouchKeywords(KeywordGroup):
         driver = self._current_application()
         driver.scroll(el1, el2)
 
-    def scroll_down(self, locator, timeout=10, retry_interval=1):
+    def scroll_down(self, locator, timeout: Union[int, timedelta] = timedelta(seconds=10), retry_interval=1):
         """Scrolls down until the element identified by ``locator`` is found or until the ``timeout`` (Android only) is reached.
-        
+
         Args:
         - ``locator`` - (mandatory) locator of the element to scroll down to
-        - ``timeout`` - (optional, Android only) timeout in seconds (default=10s)
+        - ``timeout`` - (optional) timeout in seconds (default=10s)
         - ``retry_interval`` - (optional) interval between scroll attempts in seconds (default=1s)
         """
         driver = self._current_application()
         platform = self._get_platform()
-        if platform == 'android':
+        ios_not_found = False
+
+        if isinstance(timeout, int):
+            logger.warn(
+                "Keyword 'Scroll Down' will not support int in s for 'timeout' in the future. "
+                "Use timedelta with units ('ms' or 's') instead."
+            )
+            timeout = timedelta(seconds=timeout)
+
+        if platform == 'ios':
+            try:
+                element = self._element_find(locator, True, True)
+                driver.execute_script("mobile: scroll", {"direction": 'down', 'elementid': element.id})
+                return True
+            except:
+                ios_not_found = True
+
+        if platform == 'android' or ios_not_found:
             start_time = time.time()
-            while time.time() - start_time < timeout:
+            while time.time() - start_time < timeout.total_seconds():
                 try:
                     element = self._element_find(locator, True, True)
                     return True
@@ -154,26 +171,39 @@ class _TouchKeywords(KeywordGroup):
 
                     driver.swipe(start_x=int(x), start_y=int(start_y), end_x=int(x), end_y=int(end_y), duration=1000)
                 time.sleep(retry_interval)
-        else:
-            element = self._element_find(locator, True, True)
-            driver.execute_script("mobile: scroll", {"direction": 'down', 'elementid': element.id})
-            return True
 
-        raise AssertionError(f"Element '{locator}' not found within {timeout} seconds.")
+        raise AssertionError(f"Element '{locator}' not found within {timeout.total_seconds()} seconds.")
 
-    def scroll_up(self, locator, timeout=10, retry_interval=1):
+    def scroll_up(self, locator,  timeout: Union[int, timedelta] = timedelta(seconds=10), retry_interval=1):
         """Scrolls up until the element identified by the ``locator`` is found or the ``timeout`` (Android only) is reached.
-        
+
         Args:
         - ``locator`` - (mandatory)  locator of the element to scroll up to
-        - ``timeout`` - (optional, Android only) timeout in seconds (default=10s)
+        - ``timeout`` - (optional) timeout in seconds (default=10s)
         - ``retry_interval`` - (optional) interval between scroll attempts in seconds (default=1s)
         """
         driver = self._current_application()
         platform = self._get_platform()
-        if platform == 'android':
+        ios_not_found = False
+
+        if isinstance(timeout, int):
+            logger.warn(
+                "Keyword 'Scroll Down' will not support int in s for 'timeout' in the future. "
+                "Use timedelta with units ('ms' or 's') instead."
+            )
+            timeout = timedelta(seconds=timeout)
+
+        if platform == 'ios':
+            try:
+                element = self._element_find(locator, True, True)
+                driver.execute_script("mobile: scroll", {"direction": 'up', 'elementid': element.id})
+                return True
+            except:
+                ios_not_found = True
+
+        if platform == 'android' or ios_not_found:
             start_time = time.time()
-            while time.time() - start_time < timeout:
+            while time.time() - start_time < timeout.total_seconds():
                 try:
                     element = self._element_find(locator, True, True)
                     return True
@@ -188,13 +218,8 @@ class _TouchKeywords(KeywordGroup):
 
                     driver.swipe(start_x=int(x), start_y=int(start_y), end_x=int(x), end_y=int(end_y), duration=1000)
                 time.sleep(retry_interval)
-        else:
-            element = self._element_find(locator, True, True)
-            driver.execute_script("mobile: scroll", {"direction": 'up', 'elementid': element.id})
-            return True
 
-        raise AssertionError(f"Element '{locator}' not found within {timeout} seconds.")
-
+        raise AssertionError(f"Element '{locator}' not found within {timeout.total_seconds()} seconds.")
 
     def long_press(self, locator, duration=1000):
         """
@@ -240,7 +265,7 @@ class _TouchKeywords(KeywordGroup):
                 "Use timedelta with units ('ms' or 's') instead."
             )
             duration = timedelta(milliseconds=duration)
-        
+
         driver = self._current_application()
         driver.tap(positions=list(locations), duration=duration.total_seconds() * 1000)
 
@@ -307,7 +332,7 @@ class _TouchKeywords(KeywordGroup):
         driver.flick(start_x, start_y, end_x, end_y)
 
     def tap(self, element: Union[str, list], count:int = 1, duration=timedelta(seconds=1)):
-        """Taps the ``element`` for ``count`` times over the ``duration``. 
+        """Taps the ``element`` for ``count`` times over the ``duration``.
 
         Args:
         - ``element`` - locator or coordinates of the element to be tapped
@@ -334,7 +359,7 @@ class _TouchKeywords(KeywordGroup):
                     driver.tap([(x, y)], duration.total_seconds() * 1000)
             else:
                 raise ValueError(f"Invalid coordinates format: {element}. Expected a list like [x, y]")
-            
+
         elif isinstance(element, str):
             for _ in range(count):
                 el = self._element_find(element, True, True)
