@@ -2,12 +2,18 @@
 
 import os
 import robot
-from .keywordgroup import KeywordGroup
+from robotlibcore import keyword
+from AppiumLibrary.base import LibraryComponent
 
-class _ScreenshotKeywords(KeywordGroup):
+
+class _ScreenshotKeywords(LibraryComponent):
+
+    def __init__(self, ctx):
+        LibraryComponent.__init__(self, ctx)
 
     # Public
 
+    @keyword
     def capture_page_screenshot(self, filename=None):
         """Takes a screenshot of the current page and embeds it into the log.
 

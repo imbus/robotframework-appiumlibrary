@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 import base64
 
-from .keywordgroup import KeywordGroup
+from robotlibcore import keyword
+from AppiumLibrary.base import LibraryComponent
 from selenium.common.exceptions import TimeoutException
 from robot.api import logger
 
 
-class _AndroidUtilsKeywords(KeywordGroup):
+class _AndroidUtilsKeywords(LibraryComponent):
+
+    def __init__(self, ctx):
+        LibraryComponent.__init__(self, ctx)
+
+    @keyword
     def open_notifications(self):
         """Opens and expands an Android device's notification drawer.
 
@@ -15,6 +21,7 @@ class _AndroidUtilsKeywords(KeywordGroup):
         driver = self._current_application()
         driver.open_notifications()
 
+    @keyword
     def get_network_connection_status(self):
         """Returns an integer bitmask specifying the network connection type.\n
 
@@ -25,6 +32,7 @@ class _AndroidUtilsKeywords(KeywordGroup):
         driver = self._current_application()
         return driver.network_connection
 
+    @keyword
     def set_network_connection_status(self, connectionStatus):
         """Sets the network connection status.\n
 
@@ -48,6 +56,7 @@ class _AndroidUtilsKeywords(KeywordGroup):
         driver = self._current_application()
         return driver.set_network_connection(int(connectionStatus))
 
+    @keyword
     def pull_file(self, path, decode=False):
         """Retrieves the file at ``path`` and returns its content.\n
 
@@ -66,6 +75,7 @@ class _AndroidUtilsKeywords(KeywordGroup):
             theFile = base64.b64decode(theFile)
         return str(theFile)
 
+    @keyword
     def pull_folder(self, path, decode=False):
         """Retrieves a folder at ``path`` and returns its zipped content.\n
 
@@ -74,7 +84,7 @@ class _AndroidUtilsKeywords(KeywordGroup):
         Args:
          - ``path``: the path to the folder on the device
          - ``decode``: True/False decode the data (base64) before returning it (default=False)
-        
+
         Example:
         | ${folder_content} | Pull Folder | /sdcard/downloads/files |
         """
@@ -84,16 +94,17 @@ class _AndroidUtilsKeywords(KeywordGroup):
             theFolder = base64.b64decode(theFolder)
         return theFolder
 
+    @keyword
     def push_file(self, path, data, encode=False):
         """Puts the data in the file specified as ``path``.\n
 
         *Android only.*
-    
+
         Args:
          - ``path``: the path on the device
          - ``data``: data to be written to the file
          - ``encode``: should be set to True/False to encode the data as base64 before writing it to the file (default=False)
-        
+
         Example:
         | Push File | /sdcard/downloads/file.extension | ${data} |
         """
@@ -103,6 +114,7 @@ class _AndroidUtilsKeywords(KeywordGroup):
             data = base64.b64encode(data).decode('utf-8')
         driver.push_file(path, data)
 
+    @keyword
     def delete_file(self, path, timeout=5000, include_stderr=True):
         """Deletes the file specified as ``path``.\n
 
@@ -124,6 +136,7 @@ class _AndroidUtilsKeywords(KeywordGroup):
             'timeout': timeout
         })
 
+    @keyword
     def get_activity(self):
         """Retrieves the current activity on the device.\n
 
@@ -132,6 +145,7 @@ class _AndroidUtilsKeywords(KeywordGroup):
         driver = self._current_application()
         return driver.current_activity
 
+    @keyword
     def wait_activity(self, activity, timeout, interval=1):
         """Waits for an activity: blocks until target activity presents or until the timeout is reached.\n
 
@@ -146,11 +160,12 @@ class _AndroidUtilsKeywords(KeywordGroup):
         if not driver.wait_activity(activity=activity, timeout=float(timeout), interval=float(interval)):
             raise TimeoutException(msg="Activity %s never presented, current activity: %s" % (activity, self.get_activity()))
 
+    @keyword
     def install_app(self, app_path, app_package):
         """ Installs the app via appium.\n
 
         *Android only.*
-    
+
         Args:
         - ``app_path``: path to app
         - ``app_package``: package of install app to verify
@@ -159,19 +174,21 @@ class _AndroidUtilsKeywords(KeywordGroup):
         driver.install_app(app_path)
         return driver.is_app_installed(app_package)
 
+    @keyword
     def set_location(self, latitude, longitude, altitude=10):
         """ Sets the location.\n
 
         *Android only.*
-    
+
         Args:
         - ``latitute``
         - ``longitude``
         - ``altitude`` = 10
         """
         driver = self._current_application()
-        driver.set_location(latitude,longitude,altitude)
+        driver.set_location(latitude, longitude, altitude)
 
+    @keyword
     def start_activity(self, appPackage, appActivity, **opts):
         """ Starts the given activity intent. It invokes the `am start/ am start-activity` command under the hood.
         This keyword extends the functionality of the Start Activity app management API.
@@ -202,11 +219,11 @@ class _AndroidUtilsKeywords(KeywordGroup):
         Example:
         | Start Activity | com.google.android.deskclock | com.android.deskclock.DeskClock |
         """
-        
+
         arguments = {
-            'user':'user',
+            'user': 'user',
             'wait': 'wait',
-            'stop' : 'stop',
+            'stop': 'stop',
             'windowingMode': 'windowingMode',
             'activityType': 'activityType',
             'action': 'action',
@@ -214,10 +231,10 @@ class _AndroidUtilsKeywords(KeywordGroup):
             'mimeType': 'mimeType',
             'identifier': 'identifier',
             'categories': 'categories',
-            'component' : 'component',
+            'component': 'component',
             'package': 'package',
             'extras': 'extras',
-            'flags':'flags'
+            'flags': 'flags'
         }
 
         data = {}
@@ -231,6 +248,6 @@ class _AndroidUtilsKeywords(KeywordGroup):
         for key, value in arguments.items():
             if value in opts:
                 data[key] = opts[value]
-    
+
         driver = self._current_application()
         driver.execute_script('mobile: startActivity', data)

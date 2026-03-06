@@ -7,8 +7,8 @@ import mock
 from appium.webdriver.connectiontype import ConnectionType
 from webdriverremotemock import WebdriverRemoteMock
 
-from AppiumLibrary import _AndroidUtilsKeywords
-from AppiumLibrary import _ApplicationManagementKeywords
+from AppiumLibrary.keywords import _AndroidUtilsKeywords
+from AppiumLibrary.keywords import _ApplicationManagementKeywords
 
 logger = logging.getLogger()
 stream_handler = logging.StreamHandler(sys.stdout)
@@ -18,10 +18,6 @@ logger.addHandler(stream_handler)
 
 
 class AndroidUtilsTests(unittest.TestCase):
-    import six
-    if six.PY2:
-        assertRegex = unittest.TestCase.assertRegexpMatches
-        assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
     am = None
     au = None
@@ -30,7 +26,8 @@ class AndroidUtilsTests(unittest.TestCase):
         self.am.close_all_applications()
 
     def setUp(self):
-        self.am = _ApplicationManagementKeywords()
+        ctx = mock.MagicMock()
+        self.am = _ApplicationManagementKeywords(ctx)
         self.am._debug = mock.Mock()
         # Uncomment to use Mock / Comment to test against real appium instance
         appium.webdriver.Remote = WebdriverRemoteMock
@@ -38,7 +35,8 @@ class AndroidUtilsTests(unittest.TestCase):
         self.am._debug = logger.debug
         self.am.open_application('http://10.1.160.124:4724/wd/hub', alias='MsB1', deviceName='MsB1', udid='d81e91ba', platformVersion='4.4',
                                  appPackage='com.android.contacts', platformName='Android', appActivity='.activities.DialtactsActivity')
-        self.au = _AndroidUtilsKeywords()
+        au_ctx = mock.MagicMock()
+        self.au = _AndroidUtilsKeywords(au_ctx)
         self.au._current_application = self.am._current_application
 
     def test_set_network_connection_status(self):

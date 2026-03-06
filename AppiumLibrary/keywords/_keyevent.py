@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from .keywordgroup import KeywordGroup
+from robotlibcore import keyword
+from AppiumLibrary.base import LibraryComponent
 
 
-class _KeyeventKeywords(KeywordGroup):
+class _KeyeventKeywords(LibraryComponent):
+
+    def __init__(self, ctx):
+        LibraryComponent.__init__(self, ctx)
 
     # Public
+
+    @keyword
     def press_keycode(self, keycode, metastate=None):
         """Sends a press of ``keycode`` to the device.
 
@@ -33,6 +39,7 @@ class _KeyeventKeywords(KeywordGroup):
         driver = self._current_application()
         driver.press_keycode(keycode, metastate)
 
+    @keyword
     def long_press_keycode(self, keycode, metastate=None):
         """Sends a long press of ``keycode`` to the device.
 

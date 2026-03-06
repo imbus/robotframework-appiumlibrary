@@ -2,7 +2,8 @@
 
 from AppiumLibrary.locators import ElementFinder
 from appium.webdriver.common.appiumby import AppiumBy
-from .keywordgroup import KeywordGroup
+from robotlibcore import keyword
+from AppiumLibrary.base import LibraryComponent
 from robot.libraries.BuiltIn import BuiltIn
 import ast
 from unicodedata import normalize
@@ -12,23 +13,15 @@ from datetime import timedelta
 from typing import Optional, Literal
 
 
-try:
-    basestring  # attempt to evaluate basestring
-
-
-    def isstr(s):
-        return isinstance(s, basestring)
-except NameError:
-    def isstr(s):
-        return isinstance(s, str)
-
-
-class _ElementKeywords(KeywordGroup):
-    def __init__(self):
+class _ElementKeywords(LibraryComponent):
+    def __init__(self, ctx):
+        LibraryComponent.__init__(self, ctx)
         self._element_finder = ElementFinder()
         self._bi = BuiltIn()
 
     # Public, element lookups
+
+    @keyword
     def clear_text(self, locator):
         """Clears the text field identified by ``locator``.
 
@@ -37,6 +30,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Clear text field '%s'" % locator)
         self._element_clear_text_by_locator(locator)
 
+    @keyword
     def click_element(self, locator):
         """Clicks the element identified by ``locator``.
 
@@ -46,6 +40,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Clicking element '%s'." % locator)
         self._element_find(locator, True, True).click()
 
+    @keyword
     def click_text(self, text, exact_match=False):
         """Clicks the text identified by ``text``.
 
@@ -56,8 +51,9 @@ class _ElementKeywords(KeywordGroup):
         use `locator` with `Get Web Elements` instead.
 
         """
-        self._element_find_by_text(text,exact_match).click()
+        self._element_find_by_text(text, exact_match).click()
 
+    @keyword
     def input_text_into_current_element(self, text):
         """Types the given ``text`` into the currently selected text field.\n
 
@@ -68,6 +64,7 @@ class _ElementKeywords(KeywordGroup):
         driver.set_clipboard_text(text)
         driver.press_keycode(50, 0x1000 | 0x2000)
 
+    @keyword
     def input_text(self, locator, text):
         """Types the given ``text`` into the text field identified by ``locator``.
 
@@ -76,6 +73,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Typing text '%s' into text field '%s'" % (text, locator))
         self._element_input_text_by_locator(locator, text)
 
+    @keyword
     def input_password(self, locator, text):
         """Types the given password into the text field identified by ``locator``.
 
@@ -87,6 +85,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Typing password into text field '%s'" % locator)
         self._element_input_text_by_locator(locator, text)
 
+    @keyword
     def input_value(self, locator, text):
         """Sets the given value into the text field identified by ``locator``.
         Input Value makes use of set_value.
@@ -98,6 +97,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Setting text '%s' into text field '%s'" % (text, locator))
         self._element_input_value_by_locator(locator, text)
 
+    @keyword
     def hide_keyboard(self, key_name=None):
         """Hides the software keyboard on the device if it is currently visible.
 
@@ -112,11 +112,13 @@ class _ElementKeywords(KeywordGroup):
         driver = self._current_application()
         driver.hide_keyboard(key_name)
 
+    @keyword
     def is_keyboard_shown(self):
         """Returns true or false if the device keyboard is displayed."""
         driver = self._current_application()
         return driver.is_keyboard_shown()
 
+    @keyword
     def page_should_contain_text(self, text, loglevel='INFO'):
         """Verifies that the current page contains ``text``.
 
@@ -130,6 +132,7 @@ class _ElementKeywords(KeywordGroup):
                                  "but did not" % text)
         self._info("Current page contains text '%s'." % text)
 
+    @keyword
     def page_should_not_contain_text(self, text, loglevel='INFO'):
         """Verifies that the current page does not contain ``text``.
 
@@ -142,6 +145,7 @@ class _ElementKeywords(KeywordGroup):
             raise AssertionError("Page should not have contained text '%s'" % text)
         self._info("Current page does not contains text '%s'." % text)
 
+    @keyword
     def page_should_contain_element(self, locator, loglevel='INFO'):
         """Verifies that the current page contains the element with the ``locator``.
 
@@ -155,6 +159,7 @@ class _ElementKeywords(KeywordGroup):
                                  "but did not" % locator)
         self._info("Current page contains element '%s'." % locator)
 
+    @keyword
     def page_should_not_contain_element(self, locator, loglevel='INFO'):
         """Verifies that the current page does not contain the element with the ``locator``.
 
@@ -167,6 +172,7 @@ class _ElementKeywords(KeywordGroup):
             raise AssertionError("Page should not have contained element '%s'" % locator)
         self._info("Current page does not contain element '%s'." % locator)
 
+    @keyword
     def element_should_be_disabled(self, locator, loglevel='INFO'):
         """*DEPRECATED!!* Use `Expect Element` instead
 
@@ -185,6 +191,7 @@ class _ElementKeywords(KeywordGroup):
                                  "but did not" % locator)
         self._info("Element '%s' is disabled ." % locator)
 
+    @keyword
     def element_should_be_enabled(self, locator, loglevel='INFO'):
         """*DEPRECATED!!* Use `Expect Element` instead
         Verifies that the element identified by ``locator`` is enabled.
@@ -202,6 +209,7 @@ class _ElementKeywords(KeywordGroup):
                                  "but did not" % locator)
         self._info("Element '%s' is enabled ." % locator)
 
+    @keyword
     def element_should_be_visible(self, locator, loglevel='INFO'):
         """*DEPRECATED!!* Use `Expect Element` instead
         Verifies that the element identified by ``locator`` is visible.
@@ -214,6 +222,7 @@ class _ElementKeywords(KeywordGroup):
             raise AssertionError("Element '%s' should be visible "
                                  "but did not" % locator)
 
+    @keyword
     def element_attribute_should_match(self, locator, attr_name, match_pattern, regexp=False):
         """Verifies that an attribute of an element matches the expected criteria.
 
@@ -286,11 +295,9 @@ class _ElementKeywords(KeywordGroup):
                                   msg="Element '%s' attribute '%s' should have been '%s' "
                                       "but it was '%s'." % (locator, attr_name, match_pattern, attr_value),
                                   values=False)
-        # if expected != elements[0].get_attribute(attr_name):
-        #    raise AssertionError("Element '%s' attribute '%s' should have been '%s' "
-        #                         "but it was '%s'." % (locator, attr_name, expected, element.get_attribute(attr_name)))
         self._info("Element '%s' attribute '%s' is '%s' " % (locator, attr_name, match_pattern))
 
+    @keyword
     def element_should_contain_text(self, locator, expected, message=''):
         """Verifies the element identified by ``locator`` contains the text ``expected``.
 
@@ -300,7 +307,7 @@ class _ElementKeywords(KeywordGroup):
         Key attributes for arbitrary elements are ``id`` and ``xpath``. ``message`` can be used to override the default error message.
         """
         self._info("Verifying element '%s' contains text '%s'."
-                    % (locator, expected))
+                   % (locator, expected))
         actual = self._get_text(locator)
         if not expected in actual:
             if not message:
@@ -308,6 +315,7 @@ class _ElementKeywords(KeywordGroup):
                           "its text was '%s'." % (locator, expected, actual)
             raise AssertionError(message)
 
+    @keyword
     def element_should_not_contain_text(self, locator, expected, message=''):
         """Verifies element identified by ``locator`` does not contain the text ``expected``.
 
@@ -323,6 +331,7 @@ class _ElementKeywords(KeywordGroup):
                           "it did." % (locator, expected)
             raise AssertionError(message)
 
+    @keyword
     def element_text_should_be(self, locator, expected, message=''):
         """Verifies that the element identified by ``locator`` contains the exact text ``expected``.
 
@@ -333,7 +342,7 @@ class _ElementKeywords(KeywordGroup):
 
         """
         self._info("Verifying element '%s' contains exactly text '%s'."
-                    % (locator, expected))
+                   % (locator, expected))
         element = self._element_find(locator, True, True)
         actual = element.text
         if expected != actual:
@@ -342,6 +351,7 @@ class _ElementKeywords(KeywordGroup):
                           "in fact it was '%s'." % (locator, expected, actual)
             raise AssertionError(message)
 
+    @keyword
     def get_webelement(self, locator):
         """Returns the first [http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.remote.webelement|WebElement] object matching ``locator``.
 
@@ -352,6 +362,7 @@ class _ElementKeywords(KeywordGroup):
         """
         return self._element_find(locator, True, True)
 
+    @keyword
     def scroll_element_into_view(self, locator):
         """Scrolls the element with the given ``locator`` into view.
 
@@ -374,6 +385,7 @@ class _ElementKeywords(KeywordGroup):
         self._current_application().execute_script(script, element)
         return element
 
+    @keyword
     def get_webelement_in_webelement(self, element, locator):
         """
         Returns a single [http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.remote.webelement|WebElement]
@@ -383,7 +395,7 @@ class _ElementKeywords(KeywordGroup):
         This way the user can find an element with a tag and then search that element's children.
         """
         elements = None
-        if isstr(locator):
+        if isinstance(locator, str):
             _locator = locator
             elements = self._element_finder.find(element, _locator, None)
             if len(elements) == 0:
@@ -394,6 +406,7 @@ class _ElementKeywords(KeywordGroup):
         elif isinstance(locator, WebElement):
             return locator
 
+    @keyword
     def get_webelements(self, locator):
         """Returns a list of [http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.remote.webelement|WebElement] objects matching ``locator``.
 
@@ -404,6 +417,7 @@ class _ElementKeywords(KeywordGroup):
         """
         return self._element_find(locator, False, True)
 
+    @keyword
     def get_element_attribute(self, locator, attribute):
         """Returns the element attribute using the given ``attribute``, e.g. name, value, etc.
 
@@ -425,6 +439,7 @@ class _ElementKeywords(KeywordGroup):
         except:
             raise AssertionError("Attribute '%s' is not valid for element '%s'" % (attribute, locator))
 
+    @keyword
     def get_element_location(self, locator):
         """Returns the location of the element with the ``locator``.
 
@@ -436,6 +451,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Element '%s' location: %s " % (locator, element_location))
         return element_location
 
+    @keyword
     def get_element_size(self, locator):
         """Returns the size of the element with the ``locator``.
 
@@ -447,6 +463,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Element '%s' size: %s " % (locator, element_size))
         return element_size
 
+    @keyword
     def get_element_rect(self, locator):
         """Returns the dimensions and coordinates of the element with the ``locator``.
 
@@ -458,6 +475,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Element '%s' rect: %s " % (locator, element_rect))
         return element_rect
 
+    @keyword
     def get_text(self, locator, first_only: bool = True):
         """Returns the text of the element with the ``locator``.
 
@@ -474,6 +492,7 @@ class _ElementKeywords(KeywordGroup):
         self._info("Element '%s' text is '%s' " % (locator, text))
         return text
 
+    @keyword
     def get_matching_xpath_count(self, xpath):
         """Returns the number of elements matching the ``xpath``
 
@@ -491,6 +510,7 @@ class _ElementKeywords(KeywordGroup):
         count = len(self._element_find("xpath=" + xpath, False, False))
         return str(count)
 
+    @keyword
     def text_should_be_visible(self, text, exact_match=False, loglevel='INFO'):
         """*DEPRECATED!!* Use `Expect Text` instead
         Verifies that the element identified by ``text`` is visible.
@@ -504,6 +524,7 @@ class _ElementKeywords(KeywordGroup):
             raise AssertionError("Text '%s' should be visible "
                                  "but did not" % text)
 
+    @keyword
     def xpath_should_match_x_times(self, xpath, count, error=None, loglevel='INFO'):
         """Verifies that the page contains the given number of elements (``count``) located by ``xpath``.
 
@@ -523,12 +544,13 @@ class _ElementKeywords(KeywordGroup):
         if int(actual_xpath_count) != int(count):
             if not error:
                 error = "Xpath %s should have matched %s times but matched %s times"\
-                            %(xpath, count, actual_xpath_count)
+                            % (xpath, count, actual_xpath_count)
             self.log_source(loglevel)
             raise AssertionError(error)
         self._info("Current page contains %s elements matching '%s'."
                    % (actual_xpath_count, xpath))
 
+    @keyword
     def expect_element(self, locator: str, state: Literal["visible", "not visible", "enabled", "disabled"], timeout=timedelta(seconds=5), retry_interval=timedelta(seconds=1), message: Optional[str] = None, loglevel: Optional[str] = 'INFO'):
         """Verifies that the element with the given ``locator`` has the desired ``state`` (visible, not visible, enabled, disabled.)
 
@@ -572,7 +594,8 @@ class _ElementKeywords(KeywordGroup):
 
         self._retry_assertion(assert_func=assert_func, timeout=timeout, retry_interval=retry_interval)
 
-    def expect_text(self, text: str, state: Literal["visible", "not visible", "enabled", "disabled"], exact_match=False, timeout=timedelta(seconds=5), retry_interval=timedelta(seconds=1), message: Optional[str] = None, loglevel: Optional[str]='INFO'):
+    @keyword
+    def expect_text(self, text: str, state: Literal["visible", "not visible", "enabled", "disabled"], exact_match=False, timeout=timedelta(seconds=5), retry_interval=timedelta(seconds=1), message: Optional[str] = None, loglevel: Optional[str] = 'INFO'):
         """Verifies that the ``text`` has the desired ``state`` (visible, not visible).
 
         Args:
@@ -701,13 +724,14 @@ class _ElementKeywords(KeywordGroup):
     def _element_find(self, locator, first_only, required, tag=None):
         application = self._current_application()
         elements = None
-        if isstr(locator):
+        if isinstance(locator, str):
             _locator = locator
             elements = self._element_finder.find(application, _locator, tag)
             if required and len(elements) == 0:
                 raise ValueError("Element locator '" + locator + "' did not match any elements.")
             if first_only:
-                if len(elements) == 0: return None
+                if len(elements) == 0:
+                    return None
                 return elements[0]
         elif isinstance(locator, WebElement):
             if first_only:
@@ -767,7 +791,7 @@ class _ElementKeywords(KeywordGroup):
             try:
                 assert_func()
                 return
-            except  (AssertionError, Exception)  as e:
+            except (AssertionError, Exception) as e:
                 last_exception = e
 
             time.sleep(retry_interval.total_seconds())

@@ -6,12 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "robotframework-appiumlibrary"
 version = "3.2.1"
 dependencies = [
-    "decorator >= 3.3.2",
-    "robotframework >= 2.6.0",
+    "robotframework >= 4.0.0",
+    "robotframework-pythonlibcore >= 4.4.1",
     "docutils >= 0.8.1",
     "selenium >=4.26.0",
     "Appium-Python-Client >= 5.1.1",
-    "six >= 1.10.0",
     "geopy >= 2.4.1",
 ]
 description = "Robot Framework Mobile app testing library for Appium Client Android & iOS & Web"

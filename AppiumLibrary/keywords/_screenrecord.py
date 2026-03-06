@@ -3,16 +3,19 @@
 import os
 import robot
 import base64
-from .keywordgroup import KeywordGroup
+from robotlibcore import keyword
+from AppiumLibrary.base import LibraryComponent
 
 
-class _ScreenrecordKeywords(KeywordGroup):
+class _ScreenrecordKeywords(LibraryComponent):
 
-    def __init__(self):
+    def __init__(self, ctx):
+        LibraryComponent.__init__(self, ctx)
         self._screenrecord_index = 0
         self._recording = None
         self._output_format = None
 
+    @keyword
     def start_screen_recording(self,
                                timeLimit='180s',
                                **options):
@@ -65,6 +68,7 @@ class _ScreenrecordKeywords(KeywordGroup):
         if self._recording is None:
             self._recording = self._current_application().start_recording_screen(**options)
 
+    @keyword
     def stop_screen_recording(self, filename=None, **options):
         """Gathers the output from the previously started screen recording  \
             to a media file, then embeds it to the log.html(Android Only).

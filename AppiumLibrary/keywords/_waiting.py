@@ -1,13 +1,16 @@
 import time
 import robot
-from .keywordgroup import KeywordGroup
+from robotlibcore import keyword
+from AppiumLibrary.base import LibraryComponent
 
 
-class _WaitingKeywords(KeywordGroup):
-    
-    def __init__(self):
+class _WaitingKeywords(LibraryComponent):
+
+    def __init__(self, ctx):
+        LibraryComponent.__init__(self, ctx)
         self._sleep_between_wait = 0.2
-        
+
+    @keyword
     def wait_until_element_is_visible(self, locator, timeout=None, error=None):
         """Waits until the element specified by the ``locator`` is visible.
 
@@ -17,7 +20,7 @@ class _WaitingKeywords(KeywordGroup):
 
         ``error`` can be used to override the default error message.
 
-        See also `Wait Until Page Contains`, `Wait Until Page Contains 
+        See also `Wait Until Page Contains`, `Wait Until Page Contains
         Element`, `Wait For Condition` and BuiltIn keyword `Wait Until Keyword
         Succeeds`.
         """
@@ -31,6 +34,7 @@ class _WaitingKeywords(KeywordGroup):
                 return error or "Element '%s' was not visible in %s" % (locator, self._format_timeout(timeout))
         self._wait_until_no_error(timeout, check_visibility)
 
+    @keyword
     def wait_until_page_contains(self, text, timeout=None, error=None):
         """Waits until the ``text`` appears on the current page.
 
@@ -49,6 +53,7 @@ class _WaitingKeywords(KeywordGroup):
             error = "Text '%s' did not appear in <TIMEOUT>" % text
         self._wait_until(timeout, error, self._is_text_present, text)
 
+    @keyword
     def wait_until_page_does_not_contain(self, text, timeout=None, error=None):
         """Waits until the ``text`` disappears from the current page.
 
@@ -73,6 +78,7 @@ class _WaitingKeywords(KeywordGroup):
 
         self._wait_until_no_error(timeout, check_present)
 
+    @keyword
     def wait_until_page_contains_element(self, locator, timeout=None, error=None):
         """Waits until the element specified by the ``locator`` appears on the current page.
 
@@ -91,6 +97,7 @@ class _WaitingKeywords(KeywordGroup):
             error = "Element '%s' did not appear in <TIMEOUT>" % locator
         self._wait_until(timeout, error, self._is_element_present, locator)
 
+    @keyword
     def wait_until_page_does_not_contain_element(self, locator, timeout=None, error=None):
         """Waits until the element specified by the ``locator`` disappears from the current page.
 
@@ -115,22 +122,24 @@ class _WaitingKeywords(KeywordGroup):
 
         self._wait_until_no_error(timeout, check_present)
 
+    @keyword
     def set_sleep_between_wait_loop(self, seconds=0.2):
         """Sets the sleep interval in ``seconds`` used by the `wait until` loop.
-        
-        If you use the remote appium server, the default value is not recommended because 
+
+        If you use the remote appium server, the default value is not recommended because
         it is another 200ms overhead to the network latency and will slow down your test
         execution.
         """
         old_sleep = self._sleep_between_wait
         self._sleep_between_wait = robot.utils.timestr_to_secs(seconds)
         return old_sleep
-    
+
+    @keyword
     def get_sleep_between_wait_loop(self):
         """Returns the sleep interval in seconds between the wait loops used by the `Wait Until ...` keywords.
         """
         return robot.utils.secs_to_timestr(self._sleep_between_wait)
-    
+
     # Private
 
     def _wait_until(self, timeout, error, function, *args):
@@ -142,7 +151,7 @@ class _WaitingKeywords(KeywordGroup):
         self._wait_until_no_error(timeout, wait_func)
 
     def _wait_until_no_error(self, timeout, wait_func, *args):
-        timeout = robot.utils.timestr_to_secs(timeout) if timeout is not None else self._timeout_in_secs
+        timeout = robot.utils.timestr_to_secs(timeout) if timeout is not None else self.library._timeout_in_secs
         maxtime = time.time() + timeout
         while True:
             timeout_error = wait_func(*args)
@@ -154,5 +163,5 @@ class _WaitingKeywords(KeywordGroup):
             time.sleep(self._sleep_between_wait)
 
     def _format_timeout(self, timeout):
-        timeout = robot.utils.timestr_to_secs(timeout) if timeout is not None else self._timeout_in_secs
+        timeout = robot.utils.timestr_to_secs(timeout) if timeout is not None else self.library._timeout_in_secs
         return robot.utils.secs_to_timestr(timeout)

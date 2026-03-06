@@ -9,24 +9,28 @@ from appium.options.common import AppiumOptions
 from appium.webdriver.client_config import AppiumClientConfig
 from AppiumLibrary.utils import ApplicationCache
 from typing import Optional
-from .keywordgroup import KeywordGroup
+from robotlibcore import keyword
+from AppiumLibrary.base import LibraryComponent
 from geopy.geocoders import Nominatim
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
-class _ApplicationManagementKeywords(KeywordGroup):
-    def __init__(self):
+class _ApplicationManagementKeywords(LibraryComponent):
+    def __init__(self, ctx):
+        LibraryComponent.__init__(self, ctx)
         self._cache = ApplicationCache()
         self._timeout_in_secs = float(5)
 
     # Public, open and close
 
+    @keyword
     def close_application(self):
         """Closes the current application and the webdriver session."""
         self._debug('Closing application with session id %s' % self._current_application().session_id)
         self._cache.close()
 
+    @keyword
     def close_all_applications(self):
         """Closes all open applications.
 
@@ -41,6 +45,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
         self._debug('Closing all applications')
         self._cache.close_all()
 
+    @keyword
     def open_application(self, remote_url, alias=None, **kwargs):
         """Opens a new application to the given Appium server.
         Capabilities of appium server, Android and iOS,
@@ -72,6 +77,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
 
         return self._cache.register(application, alias)
 
+    @keyword
     def switch_application(self, index_or_alias):
         """Switches the active application by index or alias.
 
@@ -98,6 +104,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
             self._cache.switch(index_or_alias)
         return old_index
 
+    @keyword
     def remove_application(self, application_id):
         """Removes the application that is identified by the ``application_id``.
 
@@ -109,12 +116,14 @@ class _ApplicationManagementKeywords(KeywordGroup):
         driver = self._current_application()
         driver.remove_app(application_id)
 
+    @keyword
     def get_appium_timeout(self):
         """Returns the timeout in seconds used by various keywords.
 
         See `Set Appium Timeout` for an explanation."""
         return robot.utils.secs_to_timestr(self._timeout_in_secs)
 
+    @keyword
     def set_appium_timeout(self, seconds):
         """Sets the timeout in ``seconds`` used by various keywords.
 
@@ -135,15 +144,18 @@ class _ApplicationManagementKeywords(KeywordGroup):
         self._timeout_in_secs = robot.utils.timestr_to_secs(seconds)
         return old_timeout
 
+    @keyword
     def get_appium_sessionId(self):
         """Returns the current session ID as a reference."""
         self._info("Appium Session ID: " + self._current_application().session_id)
         return self._current_application().session_id
 
+    @keyword
     def get_source(self):
         """Returns the entire source of the current page."""
         return self._current_application().page_source
 
+    @keyword
     def log_source(self, loglevel='INFO'):
         """Logs and returns the entire html source of the current page or frame.
 
@@ -161,6 +173,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
             else:
                 return ''
 
+    @keyword
     def execute_script(self, script, **kwargs):
         """
         Executes a variety of native, mobile commands that aren't associated
@@ -177,6 +190,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
 
         return self._current_application().execute_script(script, kwargs)
 
+    @keyword
     def execute_async_script(self, script, **kwargs):
         """
         Injects a snippet of Async-JavaScript into the page for execution in the
@@ -196,12 +210,13 @@ class _ApplicationManagementKeywords(KeywordGroup):
 
         return self._current_application().execute_async_script(script, kwargs)
 
+    @keyword
     def execute_adb_shell(self, command, *args):
         """
         Executes ADB shell commands.\n
 
         *Android only.*
-        
+
         Args:
         - ``command``: the adb shell command
         - ``args``: arguments to send to the command
@@ -215,6 +230,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
             'args': list(args)
         })
 
+    @keyword
     def execute_adb_shell_timeout(self, command, timeout, *args):
         """
         Executes ADB shell commands with a timeout.\n
@@ -236,10 +252,12 @@ class _ApplicationManagementKeywords(KeywordGroup):
             'timeout': timeout
         })
 
+    @keyword
     def go_back(self):
         """Goes one step backward in the browser history."""
         self._current_application().back()
 
+    @keyword
     def lock(self, seconds=5):
         """
         Locks the device for a certain period of time.\n
@@ -247,23 +265,25 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         self._current_application().lock(robot.utils.timestr_to_secs(seconds))
 
+    @keyword
     def background_application(self, seconds=5):
         """
         Puts the application in the background on the device for a certain amount of ``seconds``.
         """
         self._current_application().background_app(seconds)
 
-
+    @keyword
     def activate_application(self, app_id):
         """
         Activates the application if it is not running or is running in the background.
-        
+
         Args:
          - ``app_id``: bundleId for iOS, package name for Android.
 
         """
         self._current_application().activate_app(app_id)
 
+    @keyword
     def terminate_application(self, app_id):
         """
         Terminates the given app on the device.
@@ -274,6 +294,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         return self._current_application().terminate_app(app_id)
 
+    @keyword
     def stop_application(self, app_id, timeout=5000, include_stderr=True):
         """
         Stops the app with the ``app_id`` on the device.
@@ -286,16 +307,18 @@ class _ApplicationManagementKeywords(KeywordGroup):
             'timeout': timeout
         })
 
+    @keyword
     def touch_id(self, match=True):
         """
         Simulates Touch ID on the iOS Simulator.`
-        
+
         Args:
          - ``match`` (boolean): whether the simulated fingerprint is valid (default=True)
 
         """
         self._current_application().touch_id(match)
 
+    @keyword
     def toggle_touch_id_enrollment(self):
         """
         Toggles Touch ID enrolled state on the iOS Simulator.
@@ -303,33 +326,39 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         self._current_application().toggle_touch_id_enrollment()
 
+    @keyword
     def shake(self):
         """
         Shakes the device.
         """
         self._current_application().shake()
 
+    @keyword
     def portrait(self):
         """
         Sets the device orientation to PORTRAIT.
         """
         self._rotate('PORTRAIT')
 
+    @keyword
     def landscape(self):
         """
         Sets the device orientation to LANDSCAPE.
         """
         self._rotate('LANDSCAPE')
 
+    @keyword
     def get_current_context(self):
         """Returns the current context."""
         return self._current_application().current_context
 
+    @keyword
     def get_contexts(self):
         """Returns the available contexts."""
         print(self._current_application().contexts)
         return self._current_application().contexts
 
+    @keyword
     def get_window_height(self):
         """Returns the current device window height.
 
@@ -341,6 +370,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         return self._current_application().get_window_size()['height']
 
+    @keyword
     def get_window_width(self):
         """Returns the current device window width.
 
@@ -352,10 +382,12 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         return self._current_application().get_window_size()['width']
 
+    @keyword
     def switch_to_context(self, context_name):
         """Switches to a new context with the ``context_name``."""
         self._current_application().switch_to.context(context_name)
 
+    @keyword
     def switch_to_frame(self, frame):
         """
         Switches focus to the specified ``frame``, by index, name, or webelement.
@@ -367,6 +399,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         self._current_application().switch_to.frame(frame)
 
+    @keyword
     def switch_to_parent_frame(self):
         """
         Switches focus to the parent context. If the current context is the top
@@ -374,12 +407,14 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         self._current_application().switch_to.parent_frame()
 
+    @keyword
     def switch_to_window(self, window_name):
         """
         Switches to a new webview window with the ``window_name`` if the application contains multiple webviews.
         """
         self._current_application().switch_to.window(window_name)
 
+    @keyword
     def go_to_url(self, url):
         """
         Opens the ``url`` in the default web browser.
@@ -390,6 +425,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         self._current_application().get(url)
 
+    @keyword
     def get_capability(self, capability_name):
         """
         Returns the desired capability value by ``capability_name``.
@@ -400,19 +436,23 @@ class _ApplicationManagementKeywords(KeywordGroup):
             raise e
         return capability
 
+    @keyword
     def get_window_title(self):
         """Returns the current Webview window title."""
         return self._current_application().title
 
+    @keyword
     def get_window_url(self):
         """Returns the current Webview window URL."""
         return self._current_application().current_url
 
+    @keyword
     def get_windows(self):
         """Returns the available Webview windows."""
         print(self._current_application().window_handles)
         return self._current_application().window_handles
 
+    @keyword
     def get_device_time(self, format: Optional[str] = None):
         """Returns the date and time from the device.
 
@@ -431,6 +471,7 @@ class _ApplicationManagementKeywords(KeywordGroup):
         """
         return self._current_application().get_device_time(format)
 
+    @keyword
     def get_device_location(self):
         """Gets the device's current GPS location with human-readable address information.
 

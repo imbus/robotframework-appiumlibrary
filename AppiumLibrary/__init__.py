@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import os
-from AppiumLibrary.keywords import *
+from robot.libraries.BuiltIn import BuiltIn
+from robotlibcore import DynamicCore, PluginParser
+
 from AppiumLibrary.version import VERSION
-
-__version__ = VERSION
-
-
-class AppiumLibrary(
-    _LoggingKeywords,
+from AppiumLibrary.keywords import (
     _RunOnFailureKeywords,
     _ElementKeywords,
     _ScreenshotKeywords,
@@ -17,8 +13,13 @@ class AppiumLibrary(
     _TouchKeywords,
     _KeyeventKeywords,
     _AndroidUtilsKeywords,
-    _ScreenrecordKeywords
-):
+    _ScreenrecordKeywords,
+)
+
+__version__ = VERSION
+
+
+class AppiumLibrary(DynamicCore):
     """AppiumLibrary is a Mobile App testing library for Robot Framework.
 
     = Locating or specifying elements =
@@ -79,7 +80,8 @@ class AppiumLibrary(
     ROBOT_LIBRARY_SCOPE = 'GLOBAL'
     ROBOT_LIBRARY_VERSION = VERSION
 
-    def __init__(self, timeout=5, run_on_failure='Capture Page Screenshot', sleep_between_wait_loop=0.2):
+    def __init__(self, timeout=5, run_on_failure='Capture Page Screenshot', sleep_between_wait_loop=0.2,
+                 plugins=None):
         """AppiumLibrary can be imported with optional arguments.
 
         ``timeout`` is the default timeout used to wait for all waiting actions.
@@ -95,13 +97,97 @@ class AppiumLibrary(
 
         ``sleep_between_wait_loop`` is the default sleep used to wait between loop in all wait until keywords
 
+        ``plugins`` is an optional list of external Python classes to load as additional keyword
+        providers. Each plugin must inherit from ``AppiumLibrary.base.LibraryComponent`` and
+        receive the library instance as its first argument.
+
         Examples:
         | Library | AppiumLibrary | 10 | # Sets default timeout to 10 seconds                                                                             |
         | Library | AppiumLibrary | timeout=10 | run_on_failure=No Operation | # Sets default timeout to 10 seconds and does nothing on failure           |
         | Library | AppiumLibrary | timeout=10 | sleep_between_wait_loop=0.3 | # Sets default timeout to 10 seconds and sleep 300 ms between wait loop    |
+        | Library | AppiumLibrary | plugins=my_package.MyPlugin | # Loads MyPlugin as additional keyword provider                             |
         """
-        for base in AppiumLibrary.__bases__:
-            base.__init__(self)
+        from AppiumLibrary.base import LibraryComponent
+        self._appmanagement = _ApplicationManagementKeywords(self)
+        self._element_kw = _ElementKeywords(self)
+
+        library_components = [
+            _RunOnFailureKeywords(self),
+            self._element_kw,
+            _ScreenshotKeywords(self),
+            self._appmanagement,
+            _WaitingKeywords(self),
+            _TouchKeywords(self),
+            _KeyeventKeywords(self),
+            _AndroidUtilsKeywords(self),
+            _ScreenrecordKeywords(self),
+        ]
+        if plugins:
+            library_components += PluginParser(LibraryComponent, [self]).parse_plugins(plugins)
+        DynamicCore.__init__(self, library_components)
         self.set_appium_timeout(timeout)
         self.register_keyword_to_run_on_failure(run_on_failure)
         self.set_sleep_between_wait_loop(sleep_between_wait_loop)
+
+    def run_keyword(self, name, args, kwargs=None):
+        try:
+            return DynamicCore.run_keyword(self, name, args, kwargs or {})
+        except Exception:
+            self.failure_occurred()
+            raise
+
+    def failure_occurred(self):
+        if not getattr(self, '_run_on_failure_keyword', None):
+            return
+        if getattr(self, '_running_on_failure_routine', False):
+            return
+        self._running_on_failure_routine = True
+        try:
+            if self._run_on_failure_keyword.lower() == 'capture page screenshot':
+                self.capture_page_screenshot()
+            else:
+                BuiltIn().run_keyword(self._run_on_failure_keyword)
+        except Exception as err:
+            self._warn("Keyword '%s' could not be run on failure: %s" % (self._run_on_failure_keyword, err))
+        finally:
+            self._running_on_failure_routine = False
+
+    # --- Cross-component helper delegation ---
+    # These methods delegate to the appropriate component so that all components
+    # and LibraryComponent base methods can call self.library.XXX() without
+    # needing to know about individual component instances.
+
+    def _current_application(self):
+        return self._appmanagement._current_application()
+
+    def _get_platform(self):
+        return self._appmanagement._get_platform()
+
+    def _is_platform(self, platform):
+        return self._appmanagement._is_platform(platform)
+
+    def _is_ios(self):
+        return self._appmanagement._is_ios()
+
+    def _is_android(self):
+        return self._appmanagement._is_android()
+
+    @property
+    def _timeout_in_secs(self):
+        return self._appmanagement._timeout_in_secs
+
+    def _is_visible(self, locator):
+        return self._element_kw._is_visible(locator)
+
+    def _is_element_present(self, locator):
+        return self._element_kw._is_element_present(locator)
+
+    def _is_text_present(self, text):
+        return self._element_kw._is_text_present(text)
+
+    def _element_find(self, locator, first_only, required, tag=None):
+        return self._element_kw._element_find(locator, first_only, required, tag)
+
+    def _warn(self, message):
+        from robot.api import logger
+        logger.warn(message)

@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from robot.libraries import BuiltIn
-from .keywordgroup import KeywordGroup
-
-BUILTIN = BuiltIn.BuiltIn()
+from robotlibcore import keyword
+from AppiumLibrary.base import LibraryComponent
 
 
-class _RunOnFailureKeywords(KeywordGroup):
+class _RunOnFailureKeywords(LibraryComponent):
 
-    def __init__(self):
-        self._run_on_failure_keyword = None
-        self._running_on_failure_routine = False
+    def __init__(self, ctx):
+        LibraryComponent.__init__(self, ctx)
+        ctx._run_on_failure_keyword = None
+        ctx._running_on_failure_routine = False
 
     # Public
 
+    @keyword
     def register_keyword_to_run_on_failure(self, keyword):
         """Sets the keyword to be executed when an AppiumLibrary keyword fails.
 
@@ -39,35 +39,13 @@ class _RunOnFailureKeywords(KeywordGroup):
         This run-on-failure functionality only works when running tests on Python/Jython 2.4
         or newer and it does not work on IronPython at all.
         """
-        old_keyword = self._run_on_failure_keyword
+        old_keyword = self.library._run_on_failure_keyword
         old_keyword_text = old_keyword if old_keyword is not None else "Nothing"
 
-        new_keyword = keyword if keyword.strip().lower() != "nothing" else None
+        new_keyword = keyword if keyword.strip().lower() not in ("nothing", "none") else None
         new_keyword_text = new_keyword if new_keyword is not None else "Nothing"
 
-        self._run_on_failure_keyword = new_keyword
+        self.library._run_on_failure_keyword = new_keyword
         self._info('%s will be run on failure.' % new_keyword_text)
 
         return old_keyword_text
-
-    # Private
-
-    def _run_on_failure(self):
-        if self._run_on_failure_keyword is None:
-            return
-        if self._running_on_failure_routine:
-            return
-        self._running_on_failure_routine = True
-        try:
-            BUILTIN.run_keyword(self._run_on_failure_keyword)
-        except Exception as err:
-            self._run_on_failure_error(err)
-        finally:
-            self._running_on_failure_routine = False
-
-    def _run_on_failure_error(self, err):
-        err = "Keyword '%s' could not be run on failure: %s" % (self._run_on_failure_keyword, err)
-        if hasattr(self, '_warn'):
-            self._warn(err)
-            return
-        raise Exception(err)
